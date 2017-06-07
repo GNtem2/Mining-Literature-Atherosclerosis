@@ -1,0 +1,145 @@
+---
+title: "Mining Literature Atherosclerosis"
+author: "gntem2"
+date: "7 June 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r, include = FALSE, echo =FALSE}
+#stroke
+#save direct from pubmed
+#click send to: abstracts
+#create file
+#http://snipplr.com/view/53604/testing-lsa-in-r/
+```
+
+#search using PubMed
+#download as text file
+
+```{r Pubmed}
+library(pubmed.mineR)
+library(lsa)
+library(SnowballC)
+library(wordcloud)
+abstracts=readabs("pubmed_athero_result.txt") 
+#atherosclerosis+inflammation+plaque rupture
+pmids=abstracts@PMID
+gene=gene_atomization(abstracts)
+words=word_atomizations(abstracts)
+summary(gene)
+gene[,1]
+abstract.bodies=abstracts@Abstract
+#SentenceToken(abstract.bodies[1])
+Sathero=searchabsL(abstracts)
+Sath2015=searchabsL(Sathero,yr="2015")
+Sath2014=searchabsL(Sathero,yr="2014")
+Sath2013=searchabsL(Sathero,yr="2013")
+Sath2012=searchabsL(Sathero,yr="2012")
+Buzz=genes_BWI(Sath2015,Sath2014,"atherosclerosis",gene) 
+#buzz gene from 2014 to 2015
+Con=Find_conclusion(abstracts) #conclusion of abstracts
+```
+
+#find word associations
+
+```{r}
+#create list of words
+tdm_wordsA=c("inflammation","atherosclerosis", "carotid","rupture", "estrogen", "testosterone", "statin","IMT","shear stress","plaque","systolic",  "vulnerable","calcification", "ROS", "annexin","apoptosis", "endothelium", "EPC","thrombotic","macrophage","collagen","fibroblast", "foam cell", "smooth muscle", "monocyte", "chemokine", "antibody", "homocysteine", "insulin", "mitochondrial", "angiogenesis") #"T cell"
+
+#create list of gene
+#take gene data from first column
+tdm_wordsG=gene[,1] 
+
+#merge the 2 word lists
+tdm_wordsAG=c(tdm_wordsA,tdm_wordsG)
+
+#create term document matrix
+tdmAG=tdm_for_lsa(Sathero,tdm_wordsAG)
+
+#plot wordcloud
+m <- as.matrix(tdmAG)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+head(d, 10)
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=200, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+
+
+sort(rowSums(tdmAG)) #check 0
+sort(colSums(tdmAG))
+#relations2=relations[-row(relations)[relations == 0],] #remove 0
+#tdmAG=tdmAG[-row(tdmAG)[tdmAG ==0],] 
+#tdmAG2=tdmAG[-row(tdmAG)[tdmAG ==0],]
+lsaspace=lsa(tdmAG,dims=dimcalc_share());
+newmatrix=as.textmatrix(lsaspace)
+associated_words=lapply(tdm_wordsAG,function(x){associate(newmatrix,x,measure="cosine",threshold="0.7")})
+names(associated_words)=tdm_wordsAG
+associated_words[1:10]
+cos_sim_calc(tdmAG) #output file cosimdata.txt #cytoscape
+cos=read.table("cossimdata.txt",header=FALSE,sep="\t")
+write.csv(cos, "cossimdata.csv")
+```
+
+#use cluster algorithm
+
+```{r}
+library(apcluster)
+s1=negDistMat(tdmAG,r=2) #euclidean distance
+# s1=negDistMat(tdmAG,r=2) #manhattan distance
+s1cor=corSimMat(tdmAG,method="pearson") #correlation matrix
+apres1b=apcluster(s1,details=TRUE)
+plot(apres1b) #print performance measure
+#pdf(file=" apcluster.pdf")
+heatmap(apres1b,s1) 
+#dev.off()
+
+```
+
+#plot graph network
+
+```{r}
+#cos=read.csv("cossimdata.csv",header=FALSE) #convert cosine to positive values
+cos=na.omit(cos)
+library(igraph)
+relations <- data.frame(from=cos[,1], to=cos[,2],   weight=abs(cos[,3]))
+relations2=relations[-row(relations)[relations == 0],] #remove 0
+g.1a <- graph.data.frame(relations2, directed=FALSE)
+g.1a=simplify(g.1a)
+min<-.9
+plot(g.1a, edge.width=ifelse(E(g.1a)$weight>=min, E(g.1a)$weight, NA)) 
+#apply threshold
+set.seed(1)     # for reproducibility
+bc <- edge.betweenness.community(g.1a)
+cut <- cutat(bc,10) #5 cluster
+colors <- rainbow(10)
+plot(g.1a, vertex.color=colors[cut])  
+
+#short random walks tend to stay in the same community
+wc=cluster_walktrap(g.1a) 
+modularity(wc)
+membership(wc)
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+plot(wc,g.1a)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
