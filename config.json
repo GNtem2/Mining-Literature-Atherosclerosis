@@ -9,7 +9,7 @@
   },
   "text": {
     "more": "",
-    "intro": "Pubmed search\u003d\"Atherosclerosis, Inflammation, Plaque\nText search\u003dAtherosclerosis, Residual,Inflammation, cholesterol,Plaque, Rupture,Vulnerable, Calcification, Annexin, Apoptosis,Carotid, Coronary, Estrogen, Testosterone, histology, foam cell, fibroblast, monocyte, chemokine, insulin, homocysteine, angiogenesis,smooth muscle, IMT, Hypertension, Obesity, Diabetes, Stroke, Myocardial Infarction, Acute Coronary Syndrome,CRP",
+    "intro": "Pubmed search\u003d\"Atherosclerosis, Inflammation, Plaque\nText search\u003dAtherosclerosis, Residual,Inflammation, cholesterol,Plaque, Rupture,Vulnerable, Calcification,Carotid artery, Coronary artery, fractional flow reserve,  evolocumab, bococizumab, canakinumab, colchicine,methotrexate, salsalate,IMT, Hypertension, Obesity, Diabetes, , gut brain, microbiota, Stroke, Myocardial Infarction, Acute Coronary Syndrome",
     "title": "Atherosclerosis"
   },
   "legend": {
@@ -41,7 +41,7 @@
     },
     "graphProperties": {
       "maxEdgeSize": 4,
-      "minEdgeSize": 0.5,
+      "minEdgeSize": 0.2,
       "minNodeSize": 1,
       "maxNodeSize": 14
     },
