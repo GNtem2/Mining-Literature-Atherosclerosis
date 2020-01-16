@@ -1,0 +1,53 @@
+{
+  "type": "network",
+  "version": "1.0",
+  "data": "data.json",
+  "logo": {
+    "file": "",
+    "link": "",
+    "text": "gntem2"
+  },
+  "text": {
+    "more": "",
+    "intro": "Pubmed search\u003d\"Atherosclerosis, Inflammation, Plaque\nText search\u003dAtherosclerosis, Residual,Inflammation, cholesterol,Plaque, Rupture,Vulnerable, Calcification, Annexin, Apoptosis,Carotid, Coronary, Estrogen, Testosterone, histology, foam cell, fibroblast, monocyte, chemokine, insulin, homocysteine, angiogenesis,smooth muscle, IMT, Hypertension, Obesity, Diabetes, Stroke, Myocardial Infarction, Acute Coronary Syndrome,CRP",
+    "title": "Atherosclerosis"
+  },
+  "legend": {
+    "edgeLabel": "weight",
+    "colorLabel": "modularity_class",
+    "nodeLabel": "name"
+  },
+  "features": {
+    "search": true,
+    "groupSelectorAttribute": "Modularity Class",
+    "hoverBehavior": "default"
+  },
+  "informationPanel": {
+    "groupByEdgeDirection": true,
+    "imageAttribute": "Modularity Class"
+  },
+  "sigma": {
+    "drawingProperties": {
+      "defaultEdgeType": "curve",
+      "defaultHoverLabelBGColor": "#002147",
+      "defaultLabelBGColor": "#ddd",
+      "activeFontStyle": "bold",
+      "defaultLabelColor": "#000",
+      "labelThreshold": 5,
+      "defaultLabelHoverColor": "#fff",
+      "fontStyle": "bold",
+      "hoverFontStyle": "bold",
+      "defaultLabelSize": 7
+    },
+    "graphProperties": {
+      "maxEdgeSize": 4,
+      "minEdgeSize": 0.5,
+      "minNodeSize": 1,
+      "maxNodeSize": 14
+    },
+    "mouseProperties": {
+      "maxRatio": 20,
+      "minRatio": 0.75
+    }
+  }
+}
