@@ -1,0 +1,150 @@
+---
+title: "Athero"
+author: "gntem2"
+date: "15/01/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r data}
+
+library(pubmed.mineR)
+library(lsa)
+library(SnowballC)
+library(wordcloud)
+library(DT)
+
+
+#create list of words
+tdm_wordsA=c("inflammation","residual",             "atherosclerosis", "plaque", "vulnerable",  "carotid artery", "coronary artery", "rupture", "antiplatelet", "gliptin", "ezetimibe", "colchicine","evolocumab","bococizumab","canakinumab", "methotrexate","salsalate", "gout", "statin", "cholesterol", "IMT", "shear stress","fractional flow reserve", "calcification", "hypertension", "diabetes", "obesity" , "stroke","acute coronary syndrome","myocardial infarction","infection","penumonia","microbiota","gut brain") 
+
+#save pubmed search as summary
+#atherosclerosis inflammation 
+#16/1/20
+abstracts=readabs("pubmed_result.txt") 
+
+pmids=abstracts@PMID
+gene=gene_atomization(abstracts) #HGNC approved symbol
+
+
+#summary(gene)
+
+words=word_atomizations(abstracts)
+#plot wordcloud
+
+
+abstract.bodies=abstracts@Abstract
+#SentenceToken(abstract.bodies[1])
+
+Myelin=searchabsL(abstracts)
+Con=Find_conclusion(abstracts) #conclusion of abstracts
+
+
+#create list of gene
+#take gene data from first column
+tdm_wordsG=gene[,1] 
+
+#merge the 2 word lists
+tdm_wordsAG=c(tdm_wordsA,tdm_wordsG)
+
+#create term document matrix
+tdmAG=tdm_for_lsa(Myelin,tdm_wordsAG)
+
+#plot wordcloud
+m <- as.matrix(tdmAG)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+head(d, 10)
+
+
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=200, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+
+barplot(d[1:20,]$freq, las = 2, names.arg = d[1:20,]$word,
+        col ="lightblue", main ="Most frequent words",
+        ylab = "Word frequencies")
+
+
+## latent semantic analysis
+lsaspace=lsa(tdmAG,dims=dimcalc_share());
+newmatrix=as.textmatrix(lsaspace)
+associated_words=lapply(tdm_wordsAG,function(x){associate(newmatrix,x,measure="cosine",threshold="0.5")})
+names(associated_words)=tdm_wordsAG
+associated_words[1:10]
+cos_sim_calc(tdmAG) #output file cosimdata.txt #cytoscape
+cos=read.table("cossimdata.txt",header=FALSE,sep="\t")
+#write.csv(cos, "cossimdata.csv")
+```
+
+```{r plot}
+
+library(dplyr)
+cos2=na.omit(cos)
+
+library(igraph)
+library(ggraph)
+library(graphlayouts)
+
+#relavel column
+relations <- data.frame(from=cos2[,1], to=cos2[,2],   weight=abs(cos2[,3]))
+
+#remove 0
+relations2=relations[-row(relations)[relations == 0],] 
+
+#undirected graph
+g.1a <- graph.data.frame(relations2, directed=FALSE)
+#V(g.1a)$size<-1
+min<-.99 #threshold
+
+
+
+#Give the graph lots of room
+#opar <- par()$mar; par(mar=rep(3, 4)) 
+#plot(g.1a, layout=layout1)
+
+#plot(g.1a, layout=layout1, edge.width=ifelse(E(g.1a)$weight>=min, E(g.1a)$weight, NA)) 
+
+#waltrap community
+wc=cluster_walktrap(g.1a) 
+modularity(wc)
+
+#ebc<-edge.betweenness.community(g.1a)
+
+#ci<-cluster_infomap(g.1a)
+
+
+#
+#layout1 <- layout.auto(g.1a)
+layout1<-layout.lgl(g.1a)
+#plot(wc,g.1a, layout=layout1, vertex.size=.5,vertex.label=NA) #remove vertex label
+
+layout2<-layout.fruchterman.reingold(g.1a)
+plot(wc,g.1a, layout=layout2) #remove vertex label
+
+V(g.1a)$color<-wc$membership
+
+write.graph(g.1a,"athero.graphml",format = "graphml")
+
+
+#heatmap
+netm <- get.adjacency(g.1a, attr="weight", sparse=F) 
+palf <- colorRampPalette(c("gold", "dark orange")) 
+#heatmap(netm[,17:1], Rowv = NA, Colv = NA, col = palf(100), scale="none", margins=c(10,10) )
+
+#gephi
+
+
+``` 
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
